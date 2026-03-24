@@ -25,34 +25,76 @@
             $email_alt = $_POST["email_alt"];
 
             if ($matricula_alt != "" && $nome_alt != "" && $email_alt != "") {
-                $linhas = file("alunos.txt");
-                $arqAluno = fopen("alunos.txt", "w");
-                $encontrou = false;
+                if (file_exists("alunos.txt")) {
+                    $linhas = file("alunos.txt");
+                    $arqAluno = fopen("alunos.txt", "w");
+                    $encontrou = false;
 
-                foreach ($linhas as $linha) {
-                    $linhaLimpa = trim($linha);
-                    
-                    if ($linhaLimpa != "") {
-                        $colunaDados = explode(";", $linhaLimpa);
+                    foreach ($linhas as $linha) {
+                        $linhaLimpa = trim($linha);
                         
-                        if ($colunaDados[0] == $matricula_alt) {
-                            $novaLinha = $matricula_alt . ";" . $nome_alt . ";" . $email_alt . "\n";
-                            fwrite($arqAluno, $novaLinha);
-                            $encontrou = true;
-                        } else {
-                            fwrite($arqAluno, $linhaLimpa . "\n");
+                        if ($linhaLimpa != "") {
+                            $colunaDados = explode(";", $linhaLimpa);
+                            
+                            // Blindagem extra com isset
+                            if (isset($colunaDados[0]) && $colunaDados[0] == $matricula_alt) {
+                                $novaLinha = $matricula_alt . ";" . $nome_alt . ";" . $email_alt . "\n";
+                                fwrite($arqAluno, $novaLinha);
+                                $encontrou = true;
+                            } else {
+                                fwrite($arqAluno, $linhaLimpa . "\n");
+                            }
                         }
                     }
-                }
-                fclose($arqAluno);
+                    fclose($arqAluno);
 
-                if ($encontrou == true) {
-                    $mensagem = "Aluno alterado com sucesso!";
+                    if ($encontrou == true) {
+                        $mensagem = "Aluno alterado com sucesso!";
+                    } else {
+                        $mensagem = "Matrícula não encontrada no sistema!";
+                    }
                 } else {
-                    $mensagem = "Matrícula não encontrada no sistema!";
+                    $mensagem = "O arquivo de alunos ainda não existe.";
                 }
             } else {
                 $mensagem = "Ops! Preencha todos os campos para alterar.";
+            }
+        }
+
+        if ($_POST["acao"] == "Excluir") {
+            $matricula_exc = $_POST["matricula_exc"];
+
+            if ($matricula_exc != "") {
+                if (file_exists("alunos.txt")) {
+                    $linhas = file("alunos.txt");
+                    $arqAluno = fopen("alunos.txt", "w");
+                    $encontrou = false;
+
+                    foreach ($linhas as $linha) {
+                        $linhaLimpa = trim($linha);
+                        
+                        if ($linhaLimpa != "") {
+                            $colunaDados = explode(";", $linhaLimpa);
+                            
+                            if (isset($colunaDados[0]) && $colunaDados[0] == $matricula_exc) {
+                                $encontrou = true; 
+                            } else {
+                                fwrite($arqAluno, $linhaLimpa . "\n");
+                            }
+                        }
+                    }
+                    fclose($arqAluno);
+
+                    if ($encontrou == true) {
+                        $mensagem = "Aluno excluído com sucesso!";
+                    } else {
+                        $mensagem = "Matrícula não encontrada no sistema!";
+                    }
+                } else {
+                    $mensagem = "O arquivo de alunos ainda não existe.";
+                }
+            } else {
+                $mensagem = "Ops! Preencha a matrícula para excluir.";
             }
         }
     }
@@ -80,6 +122,14 @@
         Novo Email: <input type="text" name="email_alt"><br><br>
         <input type="submit" name="acao" value="Alterar">
     </form>
+
+    <hr>
+
+    <h1>Excluir Aluno</h1>
+    <form method="POST" action="">
+        Matrícula (Qual aluno?): <input type="text" name="matricula_exc"><br><br>
+        <input type="submit" name="acao" value="Excluir">
+    </form>
     
     <p><b><?php echo $mensagem; ?></b></p>
 
@@ -102,14 +152,19 @@
                     if (trim($linha) != "") {
                         $colunaDados = explode(";", $linha);
                 
-                        echo "<tr>";
-                        echo "<td>" . $colunaDados[0] . "</td>";
-                        echo "<td>" . $colunaDados[1] . "</td>";
-                        echo "<td>" . $colunaDados[2] . "</td>";
-                        echo "</tr>";
+                        // BLINDAGEM: Só desenha a tabela se achar as 3 partes exatas (Matricula, Nome, Email)
+                        if (count($colunaDados) >= 3) {
+                            echo "<tr>";
+                            echo "<td>" . $colunaDados[0] . "</td>";
+                            echo "<td>" . $colunaDados[1] . "</td>";
+                            echo "<td>" . $colunaDados[2] . "</td>";
+                            echo "</tr>";
+                        }
                     }
                 }
                 fclose($arqAluno);
+            } else {
+                echo "<tr><td colspan='3'>Nenhum aluno cadastrado ainda.</td></tr>";
             }
         ?>
     </table>
