@@ -1,0 +1,1 @@
+1;Multipla;Escolher um poder?;A) Voar B) Invisibilidade;A) Teletransportar
