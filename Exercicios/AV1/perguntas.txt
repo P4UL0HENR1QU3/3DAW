@@ -1,1 +1,3 @@
-1;Multipla;Escolher um poder?;A) Voar B) Invisibilidade;A) Teletransportar
+
+1;Multipla;Qual fruta o macaco gosta;A) Maça B) Banana C) Uva;B
+2;Texto;Qual dia é o dia da mentira?;-;1 de Abril
