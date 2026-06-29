@@ -1,13 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-    --bg-creme: #FAF7F2;
-    --oliva-topo: #7A8757;
-    --oliva-escuro: #4D5635;
-    --areia-pesquisa: #E1D5B8;
-    --texto: #1A1A1A;
-    --preto-rodape: #0F0F0F;
+    --bg-creme: #faf7f2;
+    --oliva-topo: #7a8757;
+    --oliva-escuro: #4d5635;
+    --areia-pesquisa: #e1d5b8;
+    --texto: #1a1a1a;
+    --preto-rodape: #0f0f0f;
 }
+
+/* --- GERAL E PÁGINA INICIAL --- */
 
 * {
     margin: 0;
@@ -24,7 +26,7 @@ body {
 
 .topo-site {
     background-color: var(--oliva-topo);
-    color: white;
+    color: #fff;
     padding-top: 20px;
 }
 
@@ -75,13 +77,13 @@ body {
 }
 
 .btn-secundario {
-    background-color: white;
+    background-color: #fff;
     color: var(--oliva-topo);
 }
 
 .btn-primario {
-    border: 1px solid white;
-    color: white;
+    border: 1px solid #fff;
+    color: #fff;
 }
 
 .barra-reserva {
@@ -128,7 +130,7 @@ body {
 
 .btn-buscar {
     background-color: var(--oliva-escuro);
-    color: white;
+    color: #fff;
     border: none;
     padding: 10px 24px;
     border-radius: 2px;
@@ -147,7 +149,7 @@ body {
 }
 
 .submenu-abas a {
-    color: white;
+    color: #fff;
     text-decoration: none;
     font-size: 0.85rem;
     padding: 14px 0;
@@ -157,7 +159,7 @@ body {
 
 .submenu-abas a.aba-ativa, .submenu-abas a:hover {
     opacity: 1;
-    border-bottom-color: white;
+    border-bottom-color: #fff;
 }
 
 .conteudo-principal {
@@ -198,7 +200,7 @@ body {
 }
 
 .banner-chamada h2 {
-    background-color: white;
+    background-color: #fff;
     color: var(--oliva-topo);
     padding: 8px 16px;
     font-size: 0.9rem;
@@ -231,7 +233,7 @@ body {
     border-radius: 2px;
     overflow: hidden;
     cursor: pointer;
-    background-color: #ECE8DF;
+    background-color: #ece8df;
 }
 
 .card-imagem {
@@ -261,7 +263,7 @@ body {
 }
 
 .nome-quarto {
-    color: white;
+    color: #fff;
     font-size: 0.75rem;
     font-weight: 500;
     white-space: nowrap;
@@ -271,14 +273,14 @@ body {
 }
 
 .preco-quarto {
-    color: white;
+    color: #fff;
     font-size: 0.85rem;
     font-weight: 600;
 }
 
 .rodape-site {
     background-color: var(--preto-rodape);
-    color: white;
+    color: #fff;
     padding: 60px 20px;
     margin-top: 60px;
     font-size: 0.8rem;
@@ -314,4 +316,241 @@ body {
 .sub-links a {
     color: #777;
     text-decoration: none;
+}
+
+
+/* --- TELA DE LOGIN --- */
+
+.topo-login {
+    padding: 16px 0;
+}
+
+.container-voltar {
+    max-width: 1140px;
+    margin: 28px auto 0 auto;
+    padding: 0 20px;
+}
+
+.btn-voltar-figma {
+    display: inline-flex;
+    color: var(--texto);
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+.btn-voltar-figma:hover {
+    transform: translateX(-5px);
+}
+
+.area-card-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px 80px 20px;
+}
+
+.card-cinza-login {
+    background-color: #bcbcbc; 
+    width: 100%;
+    max-width: 500px;
+    border-radius: 2px;
+    padding: 35px 40px;
+}
+
+.titulo-card-login {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 500;
+    text-align: center;
+    color: #111;
+    margin-bottom: 20px;
+}
+
+.linha-separadora-titulo {
+    border-bottom: 1px solid #111;
+    margin: 0 -40px 30px -40px; 
+}
+
+.grupo-input-login {
+    margin-bottom: 20px;
+}
+
+.grupo-input-login label {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 8px;
+}
+
+.grupo-input-login input {
+    width: 100%;
+    height: 44px;
+    background-color: #fff;
+    border: none;
+    border-radius: 2px;
+    padding: 0 14px;
+    font-size: 0.95rem;
+    color: #111;
+    outline: none;
+}
+
+.btn-acao-login {
+    width: 100%;
+    height: 46px;
+    background-color: #839158; 
+    color: #111; 
+    border: none;
+    border-radius: 2px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.btn-acao-login:hover {
+    filter: brightness(0.92);
+}
+
+.divisor-ou {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+    color: #111;
+    font-weight: 600;
+    font-size: 1.15rem;
+}
+
+.divisor-ou::before, .divisor-ou::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #111;
+}
+
+.divisor-ou span {
+    padding: 0 15px;
+}
+
+.botoes-sociais-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+/* --- PÁGINA DE DETALHE DO QUARTO --- */
+
+.grid-detalhe-figma {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 35px;
+    align-items: start;
+}
+
+.titulo-detalhe {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    margin-bottom: 18px;
+    color: var(--texto);
+}
+
+.foto-destaque-box {
+    width: 100%;
+    height: 400px;
+    background-color: #ddd;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+.foto-destaque-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tags-flex-box {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 35px;
+    flex-wrap: wrap;
+}
+
+.tag-figma {
+    background-color: #d3c39d;
+    color: #111;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 10px 18px;
+    border-radius: 2px;
+}
+
+.area-comentario-figma {
+    border: 1px solid #ccc;
+    background-color: #d9d9d9;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.topo-comentario {
+    background-color: #c8b894;
+    padding: 10px 15px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.area-comentario-figma textarea {
+    width: 100%;
+    height: 130px;
+    border: none;
+    background: transparent;
+    padding: 15px;
+    outline: none;
+    font-size: 0.9rem;
+    resize: none;
+}
+
+.box-reserva-figma {
+    border: 2px solid #c8b894;
+    background-color: #faf7f2;
+    border-radius: 2px;
+    text-align: center;
+    position: sticky;
+    top: 30px;
+}
+
+.topo-box-reserva {
+    background-color: #c8b894;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    padding: 12px;
+    color: #111;
+}
+
+.miolo-box-reserva {
+    padding: 25px 20px;
+}
+
+.btn-checar {
+    width: 100%;
+    background-color: #b96f38;
+    color: #fff;
+    border: none;
+    padding: 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.btn-checar:hover {
+    filter: brightness(0.9);
+}
+
+@media(max-width: 850px) {
+    .grid-detalhe-figma { grid-template-columns: 1fr; }
 }
