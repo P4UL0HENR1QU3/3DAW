@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Minhas Reservas - Albergue</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <header class="topo-site topo-login">
+        <div class="container-topo">
+            <span class="site-url" style="font-size: 1rem;">Alberguesantateresa.com</span>
+        </div>
+    </header>
+
+    <div class="container-voltar">
+        <a href="albergue.html" class="btn-voltar-figma" title="Voltar">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </a>
+    </div>
+
+    <main class="conteudo-principal" style="max-width: 800px;">
+        <div class="barra-acento-mustard"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h1 class="titulo-pagamento" style="margin-bottom: 0;">MINHAS RESERVAS</h1>
+    <button onclick="fazerLogout()" style="background-color: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 2px; cursor: pointer; font-weight: 600;">
+        Sair / Criar nova conta
+    </button>
+</div>
+        <p class="texto-intro-pagamento" style="margin-bottom: 30px;">Abaixo estão as suas reservas ativas e o histórico.</p>
+
+        <div id="lista-reservas">Buscando as suas reservas...</div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../PHP/minhas_reservas.php')
+            .then(res => res.json())
+            .then(resposta => {
+                if (resposta.status === 'erro') {
+                    // Se não estiver logado, redireciona para login
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const container = document.getElementById('lista-reservas');
+                
+                if(resposta.dados.length === 0) {
+                    container.innerHTML = "<p>Você ainda não tem nenhuma reserva registrada com este e-mail.</p>";
+                    return;
+                }
+
+                container.innerHTML = ""; // Limpa a mensagem de busca
+
+                // Desenha um "bilhete" (card) para cada reserva
+                resposta.dados.forEach(reserva => {
+                    const checkin = new Date(reserva.data_checkin).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+                    const checkout = new Date(reserva.data_checkout).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+                    const valorPago = parseFloat(reserva.valor_total).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+                    
+                    container.innerHTML += `
+                        <div style="background: #fff; padding: 25px; border-radius: 4px; margin-bottom: 20px; border-left: 6px solid #7a8757; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                            <h2 style="margin-top:0; color:#4d5635; font-family: 'Playfair Display', serif;">${reserva.nome_quarto}</h2>
+                            <p style="margin: 5px 0;"><strong>Hóspede:</strong> ${reserva.cliente_nome}</p>
+                            <p style="margin: 5px 0;"><strong>E-mail:</strong> ${reserva.cliente_email}</p>
+                            <p style="margin: 5px 0;"><strong>Período:</strong> ${checkin} até ${checkout}</p>
+                            <p style="margin: 5px 0;"><strong>Vagas/Camas reservadas:</strong> ${reserva.qtd_pessoas}</p>
+                            <p style="font-size: 1.15rem; color: #b96f38; font-weight: 700; margin-top: 15px;">Total Pago: ${valorPago}</p>
+                        </div>
+                    `;
+                });
+            })
+            .catch(erro => console.error(erro));
+        });
+
+        // Função que encerra a sessão e manda para a tela de login/cadastro
+function fazerLogout() {
+    fetch('../PHP/logout.php')
+    .then(res => res.json())
+    .then(resposta => {
+        if(resposta.status === 'sucesso') {
+            // Vai direto para a tela onde a pessoa pode criar a nova conta
+            window.location.href = 'login.html';
+        }
+    })
+    .catch(erro => console.error("Erro ao sair:", erro));
+}
+
+    </script>
+</body>
+</html>

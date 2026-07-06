@@ -13,8 +13,12 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8mb4");
 
-// Busca o quarto selecionado
-$stmt = $conn->prepare("SELECT * FROM quartos WHERE id = ?");
+// Busca o quarto e calcula as vagas livres (Capacidade - Total Reservado)
+$stmt = $conn->prepare("
+    SELECT q.*, 
+    (q.capacidade - COALESCE((SELECT SUM(qtd_pessoas) FROM reservas r WHERE r.quarto_id = q.id), 0)) AS vagas_livres 
+    FROM quartos q WHERE q.id = ?
+");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $quarto = $stmt->get_result()->fetch_assoc();

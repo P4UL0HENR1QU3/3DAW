@@ -12,17 +12,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["acao"]) && $_POST["aca
     }
     $conn->set_charset("utf8mb4");
 
-    // Recebe os dados do formulário HTML
-    $quarto_id = $_POST["quarto_id"];
-    $valor = $_POST["valor"];
-    $nome = $_POST["nome"];       
-    $email = $_POST["email"];     
-    
-    // Insere os dados reais no banco (mantivemos as datas fixas para o protótipo da AV2)
-    $stmt = $conn->prepare("INSERT INTO reservas (quarto_id, cliente_nome, cliente_email, data_checkin, data_checkout, qtd_pessoas, valor_total) VALUES (?, ?, ?, '2026-07-10', '2026-07-14', 4, ?)");
-    $stmt->bind_param("issd", $quarto_id, $nome, $email, $valor);
-    
-    if ($stmt->execute()) {
+    // Recebe TODOS os dados do formulário dinâmico
+$quarto_id = $_POST["quarto_id"];
+$valor = $_POST["valor"];
+$nome = $_POST["nome"];       
+$email = $_POST["email"];     
+$checkin = $_POST["checkin"];   
+$checkout = $_POST["checkout"];
+$qtd = $_POST["qtd"];           
+
+// Insere os dados usando as variáveis reais
+$stmt = $conn->prepare("INSERT INTO reservas (quarto_id, cliente_nome, cliente_email, data_checkin, data_checkout, qtd_pessoas, valor_total) VALUES (?, ?, ?, ?, ?, ?, ?)");
+// "issssid" = int, string, string, string, string, int, double (7 parâmetros)
+$stmt->bind_param("issssid", $quarto_id, $nome, $email, $checkin, $checkout, $qtd, $valor);
+
+if ($stmt->execute()) {
         echo json_encode(["status" => "sucesso", "mensagem" => "Reserva efetuada com sucesso!"]);
     } else {
         echo json_encode(["status" => "erro", "mensagem" => "Erro ao gravar reserva."]);

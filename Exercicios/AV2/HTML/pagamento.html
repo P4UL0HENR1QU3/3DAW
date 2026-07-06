@@ -33,7 +33,7 @@
             <p class="texto-intro-pagamento">Insira seus dados para confirmar a reserva.</p>
 
             <form id="form-cartao">
-                
+                                
                 <div class="campo-cartao-figma">
                     <label>• Nome Completo:</label>
                     <input type="text" id="nome-cliente" placeholder="Seu nome" required>
@@ -41,6 +41,16 @@
                 <div class="campo-cartao-figma">
                     <label>• E-mail:</label>
                     <input type="email" id="email-cliente" placeholder="seu@email.com" required>
+                </div>
+
+                <h3 class="subtitulo-figma" style="margin-top: 20px;">Datas da Reserva:</h3>
+                <div class="campo-cartao-figma">
+                    <label>• Check-in:</label>
+                    <input type="date" id="data-checkin" required>
+                </div>
+                <div class="campo-cartao-figma">
+                    <label>• Check-out:</label>
+                    <input type="date" id="data-checkout" required>
                 </div>
 
                 <h3 class="subtitulo-figma" style="margin-top: 20px;">Informações do Cartão:</h3>
@@ -58,6 +68,11 @@
                     <input type="text" placeholder="123" required style="max-width: 120px;">
                 </div>
 
+                <div style="background-color: #e1d5b8; padding: 15px; border-radius: 2px; margin: 20px 0; text-align: right;">
+    <span style="font-size: 0.9rem; color: #555;">Total a pagar:</span><br>
+    <strong style="font-size: 1.4rem; color: #4d5635;" id="display-total">Calculando...</strong>
+</div>
+
                 <div class="botoes-checkout-box">
                     <button type="submit" class="btn-confirmar-figma">• [Confirmar Pagamento]</button>
                     <button type="button" class="btn-cancelar-figma" onclick="window.location.href='albergue.html'">• [Cancelar]</button>
@@ -74,63 +89,100 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Pega o ID da URL
-            const parametrosURL = new URLSearchParams(window.location.search);
-            const idQuarto = parametrosURL.get('id') || 1;
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Pega o ID e a quantidade de camas da URL
+        const parametrosURL = new URLSearchParams(window.location.search);
+        const idQuarto = parametrosURL.get('id') || 1;
+        const qtdCamas = parseInt(parametrosURL.get('qtd')) || 1;
 
-            // 2. Chama a API do PHP para saber qual é o nome e o preço do quarto
-            fetch(`../PHP/detalhe.php?id=${idQuarto}`)
-            .then(res => res.json())
-            .then(resposta => {
-                if(resposta.status === 'sucesso') {
-                    const quarto = resposta.dados;
+        // 2. Chama a API do PHP para saber qual é o nome e o preço do quarto
+        fetch(`../PHP/detalhe.php?id=${idQuarto}`)
+        .then(res => res.json())
+        .then(resposta => {
+            if(resposta.status === 'sucesso') {
+                const quarto = resposta.dados;
+                const precoDiaria = parseFloat(quarto.preco);
+                
+                // Preenche a tela com o nome do quarto
+                document.getElementById('nome-quarto-span').innerText = quarto.titulo;
+                
+                // Atualiza o botão de voltar para retornar ao quarto correto
+                document.getElementById('btn-voltar').href = `detalhe.html?id=${quarto.id}`;
+
+                // (Preço x Camas x Dias) 
+                function atualizarTotal() {
+                    const checkin = document.getElementById('data-checkin').value;
+                    const checkout = document.getElementById('data-checkout').value;
+                    let dias = 1; // Cobra no mínimo 1 diária se as datas não estiverem preenchidas
+
+                    if (checkin && checkout) {
+                        const d1 = new Date(checkin);
+                        const d2 = new Date(checkout);
+                        if (d2 > d1) {
+                            // Calcula a diferença de dias entre as duas datas
+                            dias = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24));
+                        }
+                    }
+
+                    // Calcula o valor final
+                    const valorFinal = precoDiaria * qtdCamas * dias;
                     
-                    // Preenche a tela com o nome do quarto
-                    document.getElementById('nome-quarto-span').innerText = quarto.titulo;
+                    // Formata para moeda (R$) e mostra na tela 
+                    const display = document.getElementById('display-total');
+                    if(display) {
+                        display.innerText = valorFinal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+                    }
                     
-                    // Atualiza o botão de voltar para retornar ao quarto correto
-                    document.getElementById('btn-voltar').href = `detalhe.html?id=${quarto.id}`;
-
-                    // Configura o evento do formulário com os dados dinâmicos do quarto
-                    document.getElementById('form-cartao').onsubmit = function(event) {
-                        processarPagamento(event, quarto.id, quarto.preco);
-                    };
-                } else {
-                    window.location.href = 'albergue.html'; // Redireciona se houver erro
+                    return valorFinal;
                 }
-            })
-            .catch(erro => console.error("Erro ao buscar detalhes:", erro));
-        });
 
-        // 3. Função que grava a reserva no banco de dados
-        function processarPagamento(event, idQuarto, precoDiaria) {
-            event.preventDefault();
+                // Ouve sempre que o utilizador muda a data e recalcula o preço na hora
+                document.getElementById('data-checkin').addEventListener('change', atualizarTotal);
+                document.getElementById('data-checkout').addEventListener('change', atualizarTotal);
 
-            const dados = new FormData();
-            dados.append('acao', 'finalizar');
-            dados.append('quarto_id', idQuarto);
-            dados.append('valor', precoDiaria * 4); // Multiplica por 4 dias (hardcoded)
-            dados.append('nome', document.getElementById('nome-cliente').value);
-            dados.append('email', document.getElementById('email-cliente').value);
+                // Executa a primeira vez para mostrar o preço base (1 diária) na tela
+                atualizarTotal();
 
-            // Envia para o nosso novo backend
-            fetch('../PHP/pagamento.php', {
-                method: 'POST',
-                body: dados
-            })
-            .then(res => res.json())
-            .then(resposta => {
-                if(resposta.status === 'sucesso') {
-                    // Esconde o formulário e mostra a mensagem de sucesso
-                    document.getElementById('bloco-formulario').style.display = 'none';
-                    document.getElementById('bloco-recibo').style.display = 'block';
-                } else {
-                    alert(resposta.mensagem);
-                }
-            })
-            .catch(err => console.error("Erro ao processar pagamento:", err));
-        }
-    </script>
+                // 4. FUNÇÃO DE GRAVAR A RESERVA 
+                document.getElementById('form-cartao').onsubmit = function(event) {
+                    event.preventDefault();
+                    
+                    const totalCalculado = atualizarTotal(); // Pega a conta exata final
+
+                    const dados = new FormData();
+                    dados.append('acao', 'finalizar');
+                    dados.append('quarto_id', quarto.id);
+                    dados.append('valor', totalCalculado); // Envia o total matemático para o banco
+                    dados.append('nome', document.getElementById('nome-cliente').value);
+                    dados.append('email', document.getElementById('email-cliente').value);
+                    dados.append('checkin', document.getElementById('data-checkin').value);
+                    dados.append('checkout', document.getElementById('data-checkout').value);
+                    dados.append('qtd', qtdCamas);
+
+                    // Envia para o Backend
+                    fetch('../PHP/pagamento.php', { 
+                        method: 'POST', 
+                        body: dados 
+                    })
+                    .then(res => res.json())
+                    .then(respostaPHP => {
+                        if(respostaPHP.status === 'sucesso') {
+                            // Esconde o formulário e mostra a mensagem de sucesso
+                            document.getElementById('bloco-formulario').style.display = 'none';
+                            document.getElementById('bloco-recibo').style.display = 'block';
+                        } else {
+                            alert(respostaPHP.mensagem);
+                        }
+                    })
+                    .catch(err => console.error("Erro no pagamento:", err));
+                };
+            } else {
+                // Redireciona se houver erro ou o quarto não existir
+                window.location.href = 'albergue.html'; 
+            }
+        })
+        .catch(erro => console.error("Erro ao buscar detalhes:", erro));
+    });
+</script>
 </body>
 </html>

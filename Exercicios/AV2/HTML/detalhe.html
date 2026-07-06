@@ -15,9 +15,9 @@
     </header>
 
     <div class="container-voltar">
-        <a href="albergue.html" class="btn-voltar-figma" title="Voltar para a Home"></a>
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        </a>
+        <a href="albergue.html" class="btn-voltar-figma" title="Voltar para a Home">
+    <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+</a>
     </div>
 
     <main class="conteudo-principal">
@@ -50,9 +50,15 @@
                 <div class="box-reserva-figma">
                     <div class="topo-box-reserva">Reserve já!</div>
                     <div class="miolo-box-reserva">
-                        <p style="margin-bottom:15px; font-size:0.85rem; color:#555;" id="texto-capacidade">Diária calculada para - hóspedes.</p>
-                        <button class="btn-checar" id="btn-reservar">Checar Disponibilidade</button>
-                    </div>
+    <p id="texto-capacidade" style="margin-bottom:15px; font-size:0.9rem; font-weight:600; color:#4d5635;">Buscando vagas...</p>
+    
+    <div id="area-selecao" style="display: none; text-align: left; margin-bottom: 20px;">
+        <label style="font-size: 0.8rem; font-weight: 600;">Quantas camas deseja reservar?</label>
+        <select id="qtd-selecionada" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 2px;"></select>
+    </div>
+
+    <button class="btn-checar" id="btn-reservar" disabled>Checar Disponibilidade</button>
+</div>
                 </div>
             </div>
 
@@ -64,45 +70,70 @@
     </footer>
 
     <script>
-        // Assim que a página carrega, o JavaScript executa isto:
-        document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // 1. O JavaScript "lê" a barra de endereços para descobrir o ID (ex: ?id=3)
+        const parametrosURL = new URLSearchParams(window.location.search);
+        const idQuarto = parametrosURL.get('id') || 1; 
+
+        // 2. O JS pede os dados ao ficheiro PHP dentro da pasta correspondente
+        fetch(`../PHP/detalhe.php?id=${idQuarto}`)
+        .then(res => res.json())
+        .then(resposta => {
             
-            // 1. O JavaScript "lê" a barra de endereços para descobrir o ID (ex: ?id=3)
-            const parametrosURL = new URLSearchParams(window.location.search);
-            const idQuarto = parametrosURL.get('id') || 1; 
+            if(resposta.status === 'sucesso') {
+                const quarto = resposta.dados;
 
-            // 2. O JS pede os dados ao teu novo ficheiro PHP
-            fetch(`../PHP/detalhe.php?id=${idQuarto}`)
-            .then(res => res.json())
-            .then(resposta => {
+                // 3. Preenche a página HTML com os dados vindos do banco de dados
+                document.getElementById('titulo-pagina').innerText = `${quarto.titulo} - Albergue`;
                 
-                if(resposta.status === 'sucesso') {
-                    const quarto = resposta.dados;
+                // Formata o preço com vírgula
+                const precoBR = parseFloat(quarto.preco).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                document.getElementById('titulo-oferta').innerText = `OFERTA ${quarto.categoria.toUpperCase()}! - R$ ${precoBR}`;
+                
+                document.getElementById('imagem-quarto').src = quarto.imagem;
+                document.getElementById('imagem-quarto').alt = quarto.titulo;
+                
+                document.getElementById('tag-camas').innerText = `${quarto.capacidade} Camas`;
 
-                    // 3. Preenche a página HTML com os dados do banco
-                    document.getElementById('titulo-pagina').innerText = `${quarto.titulo} - Albergue`;
-                    
-                    // Formata o preço com vírgula para ficar no padrão brasileiro (ex: 85,00)
-                    const precoBR = parseFloat(quarto.preco).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-                    document.getElementById('titulo-oferta').innerText = `OFERTA ${quarto.categoria.toUpperCase()}! - R$ ${precoBR}`;
-                    
-                    document.getElementById('imagem-quarto').src = quarto.imagem;
-                    document.getElementById('imagem-quarto').alt = quarto.titulo;
-                    
-                    document.getElementById('tag-camas').innerText = `${quarto.capacidade} Camas`;
-                    document.getElementById('texto-capacidade').innerText = `Diária calculada para ${quarto.capacidade} hóspedes.`;
+                const vagasLivres = parseInt(quarto.vagas_livres);
 
-                    // Configura o botão para ir para a página de pagamento levando o ID correto
-                    document.getElementById('btn-reservar').onclick = () => {
-                        window.location.href = `pagamento.html?id=${quarto.id}`;
-                    };
+                // Se não sobrarem vagas, bloqueia a reserva
+                if (vagasLivres <= 0) {
+                    document.getElementById('texto-capacidade').innerText = `❌ Esgotado! 0 de ${quarto.capacidade} vagas disponíveis.`;
+                    document.getElementById('texto-capacidade').style.color = 'red';
+                    document.getElementById('btn-reservar').innerText = 'Quarto Lotado';
+                    document.getElementById('btn-reservar').disabled = true;
                 } else {
-                    // Se o quarto não existir, redireciona para a home
-                    window.location.href = 'albergue.php';
+                    // Mostra quantas vagas reais restam
+                    document.getElementById('texto-capacidade').innerText = `✅ ${vagasLivres} de ${quarto.capacidade} vagas disponíveis!`;
+                    document.getElementById('texto-capacidade').style.color = '#4d5635';
+                    
+                    // Limpa e preenche o seletor com as opções de camas até o limite disponível
+                    const selectBox = document.getElementById('qtd-selecionada');
+                    selectBox.innerHTML = "";
+                    for(let i = 1; i <= vagasLivres; i++) {
+                        selectBox.innerHTML += `<option value="${i}">${i} cama(s)</option>`;
+                    }
+                    
+                    // Exibe o painel de seleção e ativa o botão de prosseguir
+                    document.getElementById('area-selecao').style.display = 'block';
+                    document.getElementById('btn-reservar').disabled = false;
+
+                    // Configura o botão para ir para a página de pagamento levando o ID e a QTD pela URL
+                    document.getElementById('btn-reservar').onclick = () => {
+                        const qtdEscolhida = document.getElementById('qtd-selecionada').value;
+                        window.location.href = `pagamento.html?id=${quarto.id}&qtd=${qtdEscolhida}`;
+                    };
                 }
-            })
-            .catch(erro => console.error("Erro ao buscar detalhes:", erro));
-        });
-    </script>
+
+            } else {
+                // Se o quarto não existir no banco de dados, redireciona de volta para a home
+                window.location.href = 'albergue.html';
+            }
+        })
+        .catch(erro => console.error("Erro ao buscar detalhes:", erro));
+    });
+</script>
 </body>
 </html>

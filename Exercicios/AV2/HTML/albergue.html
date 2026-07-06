@@ -110,21 +110,25 @@
         });
 
         // Verifica se o utilizador está logado assim que a página abre
-fetch('verifica_login.php')
+fetch('../PHP/verifica_login.php')
     .then(response => response.json())
     .then(dados => {
         const indicador = document.getElementById('indicador-login');
         
         if (dados.logado) {
-            // Fica Verde e mostra o e-mail
-            indicador.classList.remove('deslogado');
-            indicador.classList.add('logado');
-            indicador.innerText = dados.email;
-            
-            // Opcional: Esconde os botões antigos para ficar mais limpo
-            document.getElementById('btn-cadastre').style.display = 'none';
-            document.getElementById('btn-login').style.display = 'none';
-        }
+    indicador.classList.remove('deslogado');
+    indicador.classList.add('logado');
+    
+    indicador.innerText = dados.email + " (Minhas Reservas)";
+    
+    indicador.href = "minhas_reservas.html";
+    
+    indicador.style.pointerEvents = "auto";
+    indicador.style.cursor = "pointer";
+    
+    document.getElementById('btn-cadastre').style.display = 'none';
+    document.getElementById('btn-login').style.display = 'none';
+}
     })
     .catch(erro => console.error("Erro ao verificar login:", erro));
 

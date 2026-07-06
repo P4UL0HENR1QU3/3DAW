@@ -15,7 +15,7 @@
     </header>
 
     <div class="container-voltar">
-        <a href="albergue.php" class="btn-voltar-figma" title="Voltar">
+        <a href="albergue.html" class="btn-voltar-figma" title="Voltar">
             <svg viewBox="0 0 24 24" width="34" height="34" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 14L4 9l5-5"/>
                 <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
@@ -97,11 +97,11 @@
                 if (resposta.status === 'sucesso') {
                     if (document.getElementById('acao').value === 'login') {
                         // Se fez login com sucesso, vai para a página inicial
-                        window.location.href = 'albergue.php';
+                        window.location.href = 'albergue.html';
                     } else {
                         // Se fez cadastro com sucesso, volta para a tela de login
                         alternarFormulario();
-                        document.getElementById('senha').value = ''; // Limpa a senha por segurança
+                        document.getElementById('senha').value = '';
                     }
                 }
             })
