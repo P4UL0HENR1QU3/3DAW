@@ -1,46 +1,10 @@
-<?php
-    $id = $_GET['id'] ?? 1;
-
-    $conn = new mysqli("localhost", "root", "", "bd_albergue");
-    if ($conn->connect_error) {
-        die("Falha na conexão com o banco.");
-    }
-    $conn->set_charset("utf8mb4");
-
-    // Processa a reserva
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["acao"])) {
-        header('Content-Type: application/json');
-        
-        $quarto_id = $_POST["quarto_id"];
-        $valor = $_POST["valor"];
-        $nome = $_POST["nome"];       // Captura o nome
-        $email = $_POST["email"];     // Captura o email
-        
-        // Insere os dados reais no banco
-        $stmt = $conn->prepare("INSERT INTO reservas (quarto_id, cliente_nome, cliente_email, data_checkin, data_checkout, qtd_pessoas, valor_total) VALUES (?, ?, ?, '2026-07-10', '2026-07-14', 4, ?)");
-        $stmt->bind_param("issd", $quarto_id, $nome, $email, $valor);
-        
-        echo json_encode(["status" => $stmt->execute() ? "sucesso" : "erro"]);
-        exit;
-    }
-
-    $stmt = $conn->prepare("SELECT * FROM quartos WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $quarto = $stmt->get_result()->fetch_assoc();
-
-    if (!$quarto) {
-        header("Location: albergue.php");
-        exit;
-    }
-?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pagamento - Albergue Santa Teresa</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -51,7 +15,7 @@
     </header>
 
     <div class="container-voltar">
-        <a href="detalhe.php?id=<?= $quarto['id'] ?>" class="btn-voltar-figma" title="Voltar">
+        <a href="albergue.html" id="btn-voltar" class="btn-voltar-figma" title="Voltar">
             <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </a>
     </div>
@@ -62,13 +26,13 @@
         <h1 class="titulo-pagamento">MÉTODO DE PAGAMENTO</h1>
 
         <div class="box-disponibilidade-ok">
-            ✅ Quarto Disponível! O quarto "<?= $quarto['titulo'] ?>" está reservado por 15 minutos.
+            ✅ Quarto Disponível! O quarto "<span id="nome-quarto-span">...</span>" está reservado por 15 minutos.
         </div>
 
         <div id="bloco-formulario">
             <p class="texto-intro-pagamento">Insira seus dados para confirmar a reserva.</p>
 
-            <form id="form-cartao" onsubmit="processarPagamento(event, <?= $quarto['id'] ?>, <?= $quarto['preco'] ?>)">
+            <form id="form-cartao">
                 
                 <div class="campo-cartao-figma">
                     <label>• Nome Completo:</label>
@@ -96,7 +60,7 @@
 
                 <div class="botoes-checkout-box">
                     <button type="submit" class="btn-confirmar-figma">• [Confirmar Pagamento]</button>
-                    <button type="button" class="btn-cancelar-figma" onclick="window.location.href='albergue.php'">• [Cancelar]</button>
+                    <button type="button" class="btn-cancelar-figma" onclick="window.location.href='albergue.html'">• [Cancelar]</button>
                 </div>
             </form>
         </div>
@@ -104,34 +68,68 @@
         <div id="bloco-recibo" style="display: none;">
             <h2 class="titulo-recibo">Confirmação de Pagamento:</h2>
             <p class="sub-sucesso">Pagamento Concluído com Sucesso!</p>
-            <button class="btn-checar" style="max-width: 300px; margin-top: 30px;" onclick="window.location.href='albergue.php'">Voltar para a Página Inicial</button>
+            <button class="btn-checar" style="max-width: 300px; margin-top: 30px;" onclick="window.location.href='albergue.html'">Voltar para a Página Inicial</button>
         </div>
 
     </main>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Pega o ID da URL
+            const parametrosURL = new URLSearchParams(window.location.search);
+            const idQuarto = parametrosURL.get('id') || 1;
+
+            // 2. Chama a API do PHP para saber qual é o nome e o preço do quarto
+            fetch(`../PHP/detalhe.php?id=${idQuarto}`)
+            .then(res => res.json())
+            .then(resposta => {
+                if(resposta.status === 'sucesso') {
+                    const quarto = resposta.dados;
+                    
+                    // Preenche a tela com o nome do quarto
+                    document.getElementById('nome-quarto-span').innerText = quarto.titulo;
+                    
+                    // Atualiza o botão de voltar para retornar ao quarto correto
+                    document.getElementById('btn-voltar').href = `detalhe.html?id=${quarto.id}`;
+
+                    // Configura o evento do formulário com os dados dinâmicos do quarto
+                    document.getElementById('form-cartao').onsubmit = function(event) {
+                        processarPagamento(event, quarto.id, quarto.preco);
+                    };
+                } else {
+                    window.location.href = 'albergue.html'; // Redireciona se houver erro
+                }
+            })
+            .catch(erro => console.error("Erro ao buscar detalhes:", erro));
+        });
+
+        // 3. Função que grava a reserva no banco de dados
         function processarPagamento(event, idQuarto, precoDiaria) {
             event.preventDefault();
 
             const dados = new FormData();
             dados.append('acao', 'finalizar');
             dados.append('quarto_id', idQuarto);
-            dados.append('valor', precoDiaria * 4);
+            dados.append('valor', precoDiaria * 4); // Multiplica por 4 dias (hardcoded)
             dados.append('nome', document.getElementById('nome-cliente').value);
             dados.append('email', document.getElementById('email-cliente').value);
 
-            fetch(window.location.href, {
+            // Envia para o nosso novo backend
+            fetch('../PHP/pagamento.php', {
                 method: 'POST',
                 body: dados
             })
             .then(res => res.json())
             .then(resposta => {
                 if(resposta.status === 'sucesso') {
+                    // Esconde o formulário e mostra a mensagem de sucesso
                     document.getElementById('bloco-formulario').style.display = 'none';
                     document.getElementById('bloco-recibo').style.display = 'block';
+                } else {
+                    alert(resposta.mensagem);
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error("Erro ao processar pagamento:", err));
         }
     </script>
 </body>
